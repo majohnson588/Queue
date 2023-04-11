@@ -105,8 +105,8 @@ void MyQueuePop(MyQueue* obj) {
 		}
 	}
 
-	int front = StackTop(&popst);
-	StackPop(&popst);
+	int front = StackTop(&obj->popst);
+	StackPop(&obj->popst);
 	return front;
 }
 
