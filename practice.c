@@ -135,3 +135,157 @@ void myQueueFree(MyQueue* obj) {
 
 	free(obj);
 }
+
+//用栈实现队列
+//先复制Stack.c和Stack.h的代码
+typedef struct {
+	Stack pushst;
+	Stack popst;
+}MyQueue;
+
+MyQueue* myQueueCreate() {
+	MyQueue* obj = (MyQueue*)malloc(sizeof(MyQueue));
+	StackInit(&obj->pushst);
+	StackInit(&obj->popst);
+
+	return obj;
+}
+
+void MyQueuePush(MyQueue* obj, int x) {
+	StackPush(&obj->pushst, x);
+}
+
+void MyQueuePop(MyQueue* obj) {
+	if (StackEmpty(&obj->popst))
+	{
+		//如果pop栈为空，则把push栈的数据倒过来
+		while (!StackEmpty(&obj->pushst))
+		{
+			StackPush(&obj->popst, StackTop(&obj->pushst));
+			StackPop(&obj->pushst);
+		}
+	}
+
+	int front = StackTop(&obj->popst);
+	StackPop(&obj->popst);
+	return front;
+}
+
+//取队头
+int myQueuePeek(MyQueue* obj) {
+	if (StackEmpty(&obj->popst))
+	{
+		//如果pop栈为空，则把push栈的数据倒(导)过来
+		while (!StackEmpty(&obj->pushst))
+		{
+			StackPush(&obj->popst, StackTop(&obj->pushst));
+			StackPop(&obj->pushst);
+		}
+	}
+
+	return StackTop(&obj->popst);
+}
+
+bool myQueueEmpty(MyQueue* obj) {
+	return StackEmpty(&obj->popst) && StackEmpty(&obj->pushst);
+}
+
+void myQueueFree(MyQueue* obj) {
+	StackDestroy(&obj->pushst);
+	StackDestroy(&obj->popst);
+
+	free(obj);
+}
+
+//设计循环队列(环形缓冲区）
+typedef struct {
+	int* a;
+	int k;
+	int head;
+	int tail;
+}MyCircularQueue;
+
+MyCircularQueue* myCircularQueueCreate(int k) {
+	MyCircularQueue* obj = (MyCircularQueue*)malloc(sizeof(MyCircularQueue));
+	obj->a = malloc(sizeof(int) * (k + 1));
+	obj->head = obj->tail = 0;
+	obj->k = k;
+
+	return obj;
+}
+
+//尾删
+bool myCircularQueueEnQueue(MyCircularQueue* obj, int value) {
+	if (myCircularQueueIsFull(obj))
+		return false;
+
+	obj->a[obj->tail] = value;
+	obj->tail++;
+
+	//if (obj->tail == obj->k + 1)
+	//	obj->tail = 0;
+	obj->tail %= obj->k+1;
+
+	return true;
+}
+
+bool myCircularQueueIsFull(MyCircularQueue* obj) {
+	int next = obj->tail + 1;
+	if (next == obj->k + 1)
+		next = 0;
+
+	return next == obj->head;
+}
+
+//尾插
+int myCircularQueueRear(MyCircularQueue* obj) {
+	if (myCircularQueueIsEmpty(obj))
+		return -1;
+	int prev = obj->tail+obj->k;
+	//if (obj->tail == 0)
+	//	prev = obj->k;
+
+	prev %= obj->k + 1;
+
+	return obj->a[prev];
+}
+
+bool myCircularQueueIsEmpty(MyCircularQueue* obj) {
+	return obj->head == obj->tail;
+}
+
+//头删
+bool myCircularQueueDeQueue(MyCircularQueue* obj) {
+	if (myCircularQueueIsEmpty(obj))
+		return false;
+
+	++obj->head;
+	if (obj->head == obj->k + 1)
+		obj->head = 0;
+
+	return true;
+}
+
+//取头
+int myCircularQueueFront(MyCircularQueue* obj) {
+	if (myCircularQueueIsEmpty(obj))
+		return -1;
+
+	return obj->a[obj->head];
+}
+
+//取尾
+int myCircularQueueRear(MyCircularQueue* obj) {
+	if (myCircularQueueIsEmpty(obj))
+		return -1;
+	int prev = obj->tail - 1;
+	if (obj->tail == 0)
+		prev = k;
+
+	return obj->a[prev];
+}
+
+void myCircularQueueFree(MyCircularQueue* obj) {
+	free(obj->a);
+	free(obj);
+}
